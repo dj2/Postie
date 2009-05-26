@@ -14,9 +14,9 @@ class Postie
         win.will_close { exit }
 
         win.view = layout_view(:layout => {:expand => [:width, :height],
-                                            :padding => 0}) do |vert|
-          vert << layout_view(:frame => [0, 0, 0, 40], :mode => :horizontal,
-                                :layout => {:padding => 0, :start => false, :expand => [:width]}) do |horiz|
+                                           :padding => 0}) do |vert|
+          vert << layout_view(:size => [0, 40], :mode => :horizontal,
+                              :layout => {:padding => 0, :start => false, :expand => [:width]}) do |horiz|
             horiz << label(:text => "Feed", :layout => {:align => :center})
             horiz << @feed_field = text_field(:text => 'everburning.com', :layout => {:expand => [:width]})
             horiz << button(:title => 'go', :layout => {:align => :center}) do |b|
@@ -29,8 +29,7 @@ class Postie
             end
           end
 
-          vert << scroll_view(:layout => {:expand => [:width, :height]}) do |scroll|
-            scroll.setAutohidesScrollers(true)
+          vert << scroll_view(:layout => {:expand => [:width, :height]}, :autohide_scrollers => true) do |scroll|
             pr_column = column(:id => :postrank, :title => '')
             pr_column.setDataCell(PostRankCell.new)
             pr_column.setMaxWidth(34)
@@ -40,10 +39,10 @@ class Postie
             info_column.setDataCell(PostCell.new)
             
             scroll << @table = table_view(:columns => [pr_column, info_column],
-                                          :data => []) do |table|
+                                          :data => [],
+                                          :grid_style => :horizontal,
+                                          :alternating_row_background_colors => true) do |table|
                table.setRowHeight(PostCell::ROW_HEIGHT)
-               table.setUsesAlternatingRowBackgroundColors(true)
-               table.setGridStyleMask(NSTableViewSolidHorizontalGridLineMask)                             
                table.setDelegate(self)
                table.setDoubleAction(:table_clicked)
             end
@@ -58,12 +57,12 @@ class Postie
   end
 
   def table_clicked
-    url = NSURL.URLWithString(@table.dataSource.data[@table.clickedRow][:data][:link])
+    url = NSURL.URLWithString(@table.data_source.data[@table.clickedRow][:data][:link])
     NSWorkspace.sharedWorkspace.openURL(url)
   end
   
   def tableView(table, heightOfRow:row)
-    metrics = @table.dataSource.data[row][:data][:metrics].keys.length
+    metrics = @table.data_source.data[row][:data][:metrics].keys.length
     
     num_rows = (metrics / PostCell::NUM_METRICS_PER_ROW) + 1
     num_rows -= 1 if metrics > 0 && (metrics % PostCell::NUM_METRICS_PER_ROW) == 0
@@ -89,7 +88,7 @@ class Postie
           feed = JSON.parse(data)
           feed['items'].each do |item|
             post_data = {:title => item['title'], :link => item['original_link'], :metrics => {}}
-            @table.dataSource.data << {:data => post_data,
+            @table.data_source.data << {:data => post_data,
                                        :postrank => {:value => item['postrank'],
                                                      :color => item['postrank_color']}}
             DataRequest.new.get("#{POSTRANK_URL_BASE}/entry/#{item['id']}/metrics?#{APPKEY}") do |data|
@@ -98,7 +97,7 @@ class Postie
                 next if key == 'friendfeed_comm' || key == 'friendfeed_like'
                 post_data[:metrics][key.to_sym] = value
               end
-              @table.reloadData
+              @table.reload
             end
           end
         end
