@@ -24,21 +24,19 @@ class Postie
                 load_feed
 
                 @timer.invalidate unless @timer.nil?
-                @timer = NSTimer.scheduledTimerWithTimeInterval(30, target:self, selector:"refresh".to_sym, userInfo:nil, repeats:true)
+                @timer = NSTimer.scheduledTimerWithTimeInterval(30, target:self,
+                                                                selector:"refresh".to_sym,
+                                                                userInfo:nil, repeats:true)
               end
             end
           end
 
           vert << scroll_view(:layout => {:expand => [:width, :height]}, :autohide_scrollers => true) do |scroll|
-            pr_column = column(:id => :postrank, :title => '')
-            pr_column.setDataCell(PostRankCell.new)
-            pr_column.setMaxWidth(34)
-            pr_column.setMinWidth(34)
-            
-            info_column = column(:id => :data, :title => '')
-            info_column.setDataCell(PostCell.new)
-            
-            scroll << @table = table_view(:columns => [pr_column, info_column],
+            scroll << @table = table_view(:columns => [column(:id => :postrank, :title => '',
+                                                              :data_cell => PostRankCell.new,
+                                                              :max_width => 34, :min_width => 34),
+                                                       column(:id => :data, :title => '',
+                                                               :data_cell => PostCell.new)],
                                           :data => [],
                                           :grid_style => :horizontal,
                                           :alternating_row_background_colors => true) do |table|
