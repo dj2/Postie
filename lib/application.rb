@@ -38,10 +38,10 @@ class Postie
                                                        column(:id => :data, :title => '',
                                                                :data_cell => PostCell.new)],
                                           :data => [],
+                                          :delegate => self,
                                           :grid_style => :horizontal,
                                           :alternating_row_background_colors => true) do |table|
                table.setRowHeight(PostCell::ROW_HEIGHT)
-               table.setDelegate(self)
                table.setDoubleAction(:table_clicked)
             end
           end
